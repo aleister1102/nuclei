@@ -17,6 +17,7 @@ import (
 	"golang.org/x/net/proxy"
 	"golang.org/x/net/publicsuffix"
 
+	tls_client "github.com/bogdanfinn/tls-client"
 	"github.com/projectdiscovery/fastdialer/fastdialer/ja3/impersonate"
 	"github.com/projectdiscovery/nuclei/v3/pkg/protocols"
 	"github.com/projectdiscovery/nuclei/v3/pkg/protocols/common/protocolstate"
@@ -274,64 +275,6 @@ func wrappedGet(options *types.Options, configuration *Configuration) (*retryabl
 		responseHeaderTimeout = configuration.Connection.CustomMaxTimeout
 	}
 
-	transport := &http.Transport{
-		ForceAttemptHTTP2: options.ForceAttemptHTTP2,
-		DialContext:       dialers.Fastdialer.Dial,
-		DialTLSContext: func(ctx context.Context, network, addr string) (net.Conn, error) {
-			if options.TlsImpersonate {
-				return dialers.Fastdialer.DialTLSWithConfigImpersonate(ctx, network, addr, tlsConfig, impersonate.Random, nil)
-			}
-			if options.HasClientCertificates() || options.ForceAttemptHTTP2 {
-				return dialers.Fastdialer.DialTLSWithConfig(ctx, network, addr, tlsConfig)
-			}
-			return dialers.Fastdialer.DialTLS(ctx, network, addr)
-		},
-		MaxIdleConns:          maxIdleConns,
-		MaxIdleConnsPerHost:   maxIdleConnsPerHost,
-		MaxConnsPerHost:       maxConnsPerHost,
-		TLSClientConfig:       tlsConfig,
-		DisableKeepAlives:     disableKeepAlives,
-		ResponseHeaderTimeout: responseHeaderTimeout,
-	}
-
-	if options.AliveHttpProxy != "" {
-		if proxyURL, err := url.Parse(options.AliveHttpProxy); err == nil {
-			transport.Proxy = http.ProxyURL(proxyURL)
-		}
-	} else if options.AliveSocksProxy != "" {
-		socksURL, proxyErr := url.Parse(options.AliveSocksProxy)
-		if proxyErr != nil {
-			return nil, proxyErr
-		}
-
-		dialer, err := proxy.FromURL(socksURL, proxy.Direct)
-		if err != nil {
-			return nil, err
-		}
-
-		dc := dialer.(interface {
-			DialContext(ctx context.Context, network, addr string) (net.Conn, error)
-		})
-
-		transport.DialContext = dc.DialContext
-		transport.DialTLSContext = func(ctx context.Context, network, addr string) (net.Conn, error) {
-			// upgrade proxy connection to tls
-			conn, err := dc.DialContext(ctx, network, addr)
-			if err != nil {
-				return nil, err
-			}
-			if tlsConfig.ServerName == "" {
-				// addr should be in form of host:port already set from canonicalAddr
-				host, _, err := net.SplitHostPort(addr)
-				if err != nil {
-					return nil, err
-				}
-				tlsConfig.ServerName = host
-			}
-			return tls.Client(conn, tlsConfig), nil
-		}
-	}
-
 	var jar *cookiejar.Jar
 	if configuration.Connection != nil && configuration.Connection.HasCookieJar() {
 		jar = configuration.Connection.GetCookieJar()
@@ -339,6 +282,90 @@ func wrappedGet(options *types.Options, configuration *Configuration) (*retryabl
 		if jar, err = cookiejar.New(&cookiejar.Options{PublicSuffixList: publicsuffix.List}); err != nil {
 			return nil, errors.Wrap(err, "could not create cookiejar")
 		}
+	}
+
+	var transport http.RoundTripper
+
+	if options.ClientHelloID != "" {
+		tlsOptions := []tls_client.HttpClientOption{
+			tls_client.WithTimeoutSeconds(int(retryableHttpOptions.Timeout.Seconds())),
+			tls_client.WithClientProfile(GetProfile(options.ClientHelloID)),
+			tls_client.WithNotFollowRedirects(),
+			tls_client.WithInsecureSkipVerify(),
+		}
+
+		if options.AliveHttpProxy != "" {
+			tlsOptions = append(tlsOptions, tls_client.WithProxyUrl(options.AliveHttpProxy))
+		}
+
+		if jar != nil {
+			tlsOptions = append(tlsOptions, tls_client.WithCookieJar(&CookieJarAdapter{jar: jar}))
+		}
+
+		client, err := tls_client.NewHttpClient(tls_client.NewNoopLogger(), tlsOptions...)
+		if err != nil {
+			return nil, errors.Wrap(err, "could not create tls client")
+		}
+		transport = &TLSClientRoundTripper{client: client}
+	} else {
+		httpTransport := &http.Transport{
+			ForceAttemptHTTP2: options.ForceAttemptHTTP2,
+			DialContext:       dialers.Fastdialer.Dial,
+			DialTLSContext: func(ctx context.Context, network, addr string) (net.Conn, error) {
+				if options.TlsImpersonate {
+					return dialers.Fastdialer.DialTLSWithConfigImpersonate(ctx, network, addr, tlsConfig, impersonate.Random, nil)
+				}
+				if options.HasClientCertificates() || options.ForceAttemptHTTP2 {
+					return dialers.Fastdialer.DialTLSWithConfig(ctx, network, addr, tlsConfig)
+				}
+				return dialers.Fastdialer.DialTLS(ctx, network, addr)
+			},
+			MaxIdleConns:          maxIdleConns,
+			MaxIdleConnsPerHost:   maxIdleConnsPerHost,
+			MaxConnsPerHost:       maxConnsPerHost,
+			TLSClientConfig:       tlsConfig,
+			DisableKeepAlives:     disableKeepAlives,
+			ResponseHeaderTimeout: responseHeaderTimeout,
+		}
+
+		if options.AliveHttpProxy != "" {
+			if proxyURL, err := url.Parse(options.AliveHttpProxy); err == nil {
+				httpTransport.Proxy = http.ProxyURL(proxyURL)
+			}
+		} else if options.AliveSocksProxy != "" {
+			socksURL, proxyErr := url.Parse(options.AliveSocksProxy)
+			if proxyErr != nil {
+				return nil, proxyErr
+			}
+
+			dialer, err := proxy.FromURL(socksURL, proxy.Direct)
+			if err != nil {
+				return nil, err
+			}
+
+			dc := dialer.(interface {
+				DialContext(ctx context.Context, network, addr string) (net.Conn, error)
+			})
+
+			httpTransport.DialContext = dc.DialContext
+			httpTransport.DialTLSContext = func(ctx context.Context, network, addr string) (net.Conn, error) {
+				// upgrade proxy connection to tls
+				conn, err := dc.DialContext(ctx, network, addr)
+				if err != nil {
+					return nil, err
+				}
+				if tlsConfig.ServerName == "" {
+					// addr should be in form of host:port already set from canonicalAddr
+					host, _, err := net.SplitHostPort(addr)
+					if err != nil {
+						return nil, err
+					}
+					tlsConfig.ServerName = host
+				}
+				return tls.Client(conn, tlsConfig), nil
+			}
+		}
+		transport = httpTransport
 	}
 
 	httpclient := &http.Client{
@@ -426,15 +453,24 @@ func checkMaxRedirects(req *http.Request, via []*http.Request, maxRedirects int)
 	return nil
 }
 
-// isURLEncoded is an helper function to check if the URL is already encoded
-//
-// NOTE(dwisiswant0): shall we move this under `projectdiscovery/utils/urlutil`?
-func isURLEncoded(s string) bool {
-	decoded, err := url.QueryUnescape(s)
-	if err != nil {
-		// If decoding fails, it may indicate a malformed URL/invalid encoding.
-		return false
-	}
+func isURLEncoded(u string) bool {
+	return !strings.Contains(u, " ")
+}
 
-	return decoded != s
+// TLSClientRoundTripper implements http.RoundTripper using tls-client
+type TLSClientRoundTripper struct {
+	client tls_client.HttpClient
+}
+
+// RoundTrip executes a single HTTP transaction, returning a Response for the provided Request.
+func (rt *TLSClientRoundTripper) RoundTrip(req *http.Request) (*http.Response, error) {
+	fReq, err := httpToFhttp(req)
+	if err != nil {
+		return nil, err
+	}
+	fResp, err := rt.client.Do(fReq)
+	if err != nil {
+		return nil, err
+	}
+	return fhttpToHttp(fResp), nil
 }

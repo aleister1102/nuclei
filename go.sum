@@ -213,6 +213,14 @@ github.com/bodgit/sevenzip v1.6.1 h1:kikg2pUMYC9ljU7W9SaqHXhym5HyKm8/M/jd31fYan4
 github.com/bodgit/sevenzip v1.6.1/go.mod h1:GVoYQbEVbOGT8n2pfqCIMRUaRjQ8F9oSqoBEqZh5fQ8=
 github.com/bodgit/windows v1.0.1 h1:tF7K6KOluPYygXa3Z2594zxlkbKPAOvqr97etrGNIz4=
 github.com/bodgit/windows v1.0.1/go.mod h1:a6JLwrB4KrTR5hBpp8FI9/9W9jJfeQ2h4XDXU74ZCdM=
+github.com/bogdanfinn/fhttp v0.6.3 h1:WtWurH0jbc1X2hOhWckVDiSQPonaU/WwjInB+OwnaCI=
+github.com/bogdanfinn/fhttp v0.6.3/go.mod h1:0irhEtS+wJ4m8SGhWO0wmbXMjCbH3WZpU6UcymRYKuk=
+github.com/bogdanfinn/quic-go-utls v1.0.4-utls h1:zPjusVVNeJFA2ORMAP0rjnrZrBkV4Dnia4e6ToOfUDA=
+github.com/bogdanfinn/quic-go-utls v1.0.4-utls/go.mod h1:UONJOaHGWho08kZtkkgH7GjktEPjMemGxjTcNpVPZVA=
+github.com/bogdanfinn/tls-client v1.11.2 h1:o6qX0L1cEi+4MaBqujxqOeK254VZM20t3QR+A34/V6I=
+github.com/bogdanfinn/tls-client v1.11.2/go.mod h1:qQIsVGe35NdxYEozNh9JuDZ+aOaOEq2tKAsu2iYEGZg=
+github.com/bogdanfinn/utls v1.7.4-barnius h1:1ldNJEpKdkrx7b8hEc6MRkjnZIF8f2lDcTtRVxqY9zw=
+github.com/bogdanfinn/utls v1.7.4-barnius/go.mod h1:SUn0CoHGVp/akGNuaqh99yvovu64PCP2LbWd3Z/Laic=
 github.com/brianvoe/gofakeit/v7 v7.2.1 h1:AGojgaaCdgq4Adzrd2uWdbGNDyX6MWNhHdQBraNfOHI=
 github.com/brianvoe/gofakeit/v7 v7.2.1/go.mod h1:QXuPeBw164PJCzCUZVmgpgHJ3Llj49jSLVkKPMtxtxA=
 github.com/bsm/ginkgo/v2 v2.12.0 h1:Ny8MWAHyOepLGlLKYmXG4IEkioBysk6GpaRTLC8zwWs=
@@ -915,6 +923,8 @@ github.com/prometheus/procfs v0.6.0/go.mod h1:cz+aTbrPOrUb4q7XlbU9ygM+/jj0fzG6c1
 github.com/prometheus/procfs v0.7.3/go.mod h1:cz+aTbrPOrUb4q7XlbU9ygM+/jj0fzG6c1xBZuNvfVA=
 github.com/prometheus/procfs v0.8.0/go.mod h1:z7EfXMXOkbkqb9IINtpCn86r/to3BnA0uaxHdg830/4=
 github.com/prometheus/procfs v0.9.0/go.mod h1:+pB4zwohETzFnmlpe6yd2lSc+0/46IYZRB/chUwxUZY=
+github.com/quic-go/qpack v0.5.1 h1:giqksBPnT/HDtZ6VhtFKgoLOWmlyo9Ei6u9PqzIMbhI=
+github.com/quic-go/qpack v0.5.1/go.mod h1:+PC4XFrEskIVkcLzpEkbLqq1uCoxPhQuvK5rH1ZgaEg=
 github.com/redis/go-redis/v9 v9.11.0 h1:E3S08Gl/nJNn5vkxd2i78wZxWAPNZgUNTp8WIJUAiIs=
 github.com/redis/go-redis/v9 v9.11.0/go.mod h1:huWgSWd8mW6+m0VPhJjSSQ+d6Nh1VICQ6Q5lHuCH/Iw=
 github.com/refraction-networking/utls v1.7.1 h1:dxg+jla3uocgN8HtX+ccwDr68uCBBO3qLrkZUbqkcw0=
@@ -999,6 +1009,8 @@ github.com/stretchr/testify v1.11.1 h1:7s2iGBzp5EwR7/aIZr8ao5+dra3wiQyKjjFuvgVKu
 github.com/stretchr/testify v1.11.1/go.mod h1:wZwfW3scLgRK+23gO65QZefKpKQRnfz6sD981Nm4B6U=
 github.com/syndtr/goleveldb v1.0.0 h1:fBdIW9lB4Iz0n9khmH8w27SJ3QEJ7+IgjPEwGSZiFdE=
 github.com/syndtr/goleveldb v1.0.0/go.mod h1:ZVVdQEZoIme9iO1Ch2Jdy24qqXrMMOU6lpPAyBWyWuQ=
+github.com/tam7t/hpkp v0.0.0-20160821193359-2b70b4024ed5 h1:YqAladjX7xpA6BM04leXMWAEjS0mTZ5kUU9KRBriQJc=
+github.com/tam7t/hpkp v0.0.0-20160821193359-2b70b4024ed5/go.mod h1:2JjD2zLQYH5HO74y5+aE3remJQvl6q4Sn6aWA2wD1Ng=
 github.com/tarunKoyalwar/goleak v0.0.0-20240429141123-0efa90dbdcf9 h1:GXIyLuIJ5Qk46lI8WJ83qHBZKUI3zhmMmuoY9HICUIQ=
 github.com/tarunKoyalwar/goleak v0.0.0-20240429141123-0efa90dbdcf9/go.mod h1:uQdBQGrE1fZ2EyOs0pLcCDd1bBV4rSThieuIIGhXZ50=
 github.com/testcontainers/testcontainers-go v0.38.0 h1:d7uEapLcv2P8AvH8ahLqDMMxda2W9gQN1nRbHS28HBw=
@@ -1180,6 +1192,8 @@ go.opentelemetry.io/proto/otlp v1.8.0 h1:fRAZQDcAFHySxpJ1TwlA1cJ4tvcrw7nXl9xWWC8
 go.opentelemetry.io/proto/otlp v1.8.0/go.mod h1:tIeYOeNBU4cvmPqpaji1P+KbB4Oloai8wN4rWzRrFF0=
 go.uber.org/goleak v1.3.0 h1:2K3zAYmnTNqV73imy9J1T3WC+gmCePx2hEGkimedGto=
 go.uber.org/goleak v1.3.0/go.mod h1:CoHD4mav9JJNrW/WLlf7HGZPjdw8EucARQHekz1X6bE=
+go.uber.org/mock v0.5.2 h1:LbtPTcP8A5k9WPXj54PPPbjcI4Y6lhyOZXn+VS7wNko=
+go.uber.org/mock v0.5.2/go.mod h1:wLlUxC2vVTPTaE3UD51E0BGOAElKrILxhVSDYQLld5o=
 go.uber.org/multierr v1.11.0 h1:blXXJkSxSSfBVBlC76pxqeO+LN3aDfLQo+309xJstO0=
 go.uber.org/multierr v1.11.0/go.mod h1:20+QtiLqy0Nd6FdQB9TLXag12DsQkrbs3htMFfDN80Y=
 go.uber.org/zap v1.27.0 h1:aJMhYGrd5QSmlpLMr2MftRKl7t8J8PTZPA732ud/XR8=

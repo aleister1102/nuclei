@@ -381,6 +381,8 @@ type Options struct {
 	FuzzingMode string
 	// TlsImpersonate enables TLS impersonation
 	TlsImpersonate bool
+	// ClientHelloID is the client hello (ja3) id to use
+	ClientHelloID string
 	// DisplayFuzzPoints enables display of fuzz points for fuzzing
 	DisplayFuzzPoints bool
 	// FuzzAggressionLevel is the level of fuzzing aggression (low, medium, high.)
@@ -644,6 +646,7 @@ func (options *Options) Copy() *Options {
 		FuzzingType:                    options.FuzzingType,
 		FuzzingMode:                    options.FuzzingMode,
 		TlsImpersonate:                 options.TlsImpersonate,
+		ClientHelloID:                  options.ClientHelloID,
 		DisplayFuzzPoints:              options.DisplayFuzzPoints,
 		FuzzAggressionLevel:            options.FuzzAggressionLevel,
 		FuzzParamFrequency:             options.FuzzParamFrequency,

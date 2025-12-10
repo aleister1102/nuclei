@@ -1,0 +1,23 @@
+id: tls-fingerprint-check
+
+info:
+  name: TLS Fingerprint Check
+  author: pdteam
+  severity: info
+
+http:
+  - method: GET
+    path:
+      - "{{BaseURL}}/api/all"
+
+    matchers:
+      - type: word
+        words:
+          - "ja3"
+
+    extractors:
+      - type: json
+        part: body
+        json:
+          - ".tls.ja3_hash"
+          - ".tls.ja3_text"
