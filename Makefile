@@ -157,3 +157,49 @@ template-validate:
 		-w workflows \
 		-et http/technologies \
 		-ept code
+
+# Release targets
+BINARY_NAME=nuclei
+BUILD_DIR=dist
+COMMIT=$(shell git rev-parse --short HEAD)
+DATE=$(shell date +%Y-%m-%d)
+CURRENT_TAG := $(shell git describe --tags --abbrev=0 2>/dev/null || echo v0.0.0)
+VERSION_PARTS := $(subst ., ,$(subst v,,$(CURRENT_TAG)))
+MAJOR := $(word 1,$(VERSION_PARTS))
+MINOR := $(word 2,$(VERSION_PARTS))
+PATCH := $(word 3,$(VERSION_PARTS))
+NEXT_PATCH := v$(MAJOR).$(MINOR).$(shell echo $(($(PATCH)+1)))
+NEXT_MINOR := v$(MAJOR).$(shell echo $(($(MINOR)+1))).0
+NEXT_MAJOR := v$(shell echo $(($(MAJOR)+1))).0.0
+
+.PHONY: release bump-patch bump-minor bump-major
+
+release: ## Release new version (usage: make release TAG=v1.0.0)
+	@if [ -z "$(TAG)" ]; then echo "Usage: make release TAG=v1.0.0"; exit 1; fi
+	@echo "Releasing $(TAG)..."
+	@rm -rf $(BUILD_DIR) && mkdir -p $(BUILD_DIR)
+	@echo "Building binaries..."
+	@GOOS=linux GOARCH=amd64 CGO_ENABLED=0 $(GOBUILD) -trimpath $(GOFLAGS) -ldflags '${LDFLAGS}' -o $(BUILD_DIR)/$(BINARY_NAME)-linux-amd64 cmd/nuclei/main.go
+	@GOOS=linux GOARCH=arm64 CGO_ENABLED=0 $(GOBUILD) -trimpath $(GOFLAGS) -ldflags '${LDFLAGS}' -o $(BUILD_DIR)/$(BINARY_NAME)-linux-arm64 cmd/nuclei/main.go
+	@GOOS=darwin GOARCH=amd64 CGO_ENABLED=0 $(GOBUILD) -trimpath $(GOFLAGS) -ldflags '${LDFLAGS}' -o $(BUILD_DIR)/$(BINARY_NAME)-darwin-amd64 cmd/nuclei/main.go
+	@GOOS=darwin GOARCH=arm64 CGO_ENABLED=0 $(GOBUILD) -trimpath $(GOFLAGS) -ldflags '${LDFLAGS}' -o $(BUILD_DIR)/$(BINARY_NAME)-darwin-arm64 cmd/nuclei/main.go
+	@GOOS=windows GOARCH=amd64 CGO_ENABLED=0 $(GOBUILD) -trimpath $(GOFLAGS) -ldflags '${LDFLAGS}' -o $(BUILD_DIR)/$(BINARY_NAME)-windows-amd64.exe cmd/nuclei/main.go
+	@GOOS=windows GOARCH=arm64 CGO_ENABLED=0 $(GOBUILD) -trimpath $(GOFLAGS) -ldflags '${LDFLAGS}' -o $(BUILD_DIR)/$(BINARY_NAME)-windows-arm64.exe cmd/nuclei/main.go
+	@cd $(BUILD_DIR) && shasum -a 256 * > checksums.txt
+	@echo "Creating GitHub release..."
+	@git tag -d $(TAG) 2>/dev/null || true
+	@git tag -a $(TAG) -m "Release $(TAG)"
+	@git push origin $(TAG) --force
+	@gh release delete $(TAG) -y -R aleister1102/nuclei 2>/dev/null || true
+	@gh release create $(TAG) $(BUILD_DIR)/$(BINARY_NAME)-* $(BUILD_DIR)/checksums.txt --title "$(BINARY_NAME) $(TAG)" --generate-notes -R aleister1102/nuclei
+	@rm -rf $(BUILD_DIR)
+	@echo "Done: $(TAG)"
+
+bump-patch: ## Release next patch version
+	@$(MAKE) release TAG=$(NEXT_PATCH)
+
+bump-minor: ## Release next minor version
+	@$(MAKE) release TAG=$(NEXT_MINOR)
+
+bump-major: ## Release next major version
+	@$(MAKE) release TAG=$(NEXT_MAJOR)
